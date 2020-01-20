@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - "12"
+sudo: true
+
+addons:
+  chrome: stable
+
+before_script:
+  - npm install -g @angular/cli
+
+install:
+  - npm install
+
+script:
+  - npm run test -- --watch=false --no-progress --browsers=ChromeHeadlessNoSandbox

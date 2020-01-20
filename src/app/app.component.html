@@ -1,0 +1,65 @@
+<mat-toolbar color="primary" class="header">
+  <span>CTA Bus Arrivals</span>
+  <span class="spacer"></span>
+  <button mat-button (click)="refreshData()">Refresh</button>
+</mat-toolbar>
+
+<div class="container" *ngIf="(info$ | async); let info">
+
+  <ng-container [ngSwitch]="info.status">
+    <ng-container *ngSwitchCase="REQUEST_STATE.SUCCESS">
+      <div class="entry" *ngFor="let i of info.data">
+        <div class="entry__header">
+          <span class="entry__header__title">{{i.CommonName}}</span> <!--{{i.Distance | number:'1.0-0'}}m-->
+          <span class="spacer"></span>
+          <a href="https://maps.google.com/?q={{i.Lat}},{{i.Lon}}" class="entry__header__link">
+            {{i.Distance | number:'1.0-2'}} mi
+            <mat-icon class="entry__header__icon" aria-hidden="false" [attr.aria-label]="'Directions to '+i.CommonName">
+              map
+            </mat-icon>
+          </a>
+        </div>
+        <table mat-table [dataSource]="i.Predictions" class="mat-elevation-z5 entry__table">
+          <ng-container matColumnDef="RouteID">
+            <th mat-header-cell *matHeaderCellDef> Bus No.</th>
+            <td mat-cell *matCellDef="let element"> {{element.RouteID}} </td>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="Destination">
+            <th mat-header-cell *matHeaderCellDef> Destination</th>
+            <td mat-cell *matCellDef="let element"> {{element.Destination}} </td>
+          </ng-container>
+
+          <!-- Weight Column -->
+          <ng-container matColumnDef="TimeLeft">
+            <th mat-header-cell *matHeaderCellDef> Time left</th>
+            <td mat-cell *matCellDef="let element"> {{element.TimeLeft | busTime}} </td>
+          </ng-container>
+
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    </ng-container>
+    <div class="centered" *ngSwitchCase="REQUEST_STATE.LOCATION_PERMISSION_DENIED">
+      <mat-error>This app requires location access to work. Location permission has been denied.</mat-error>
+    </div>
+    <div class="centered" *ngSwitchCase="REQUEST_STATE.LOCATION_TIMEOUT">
+      <mat-error>Timeout while trying to determine location.</mat-error>
+    </div>
+    <div class="centered" *ngSwitchCase="REQUEST_STATE.LOCATION_UNAVAILABLE">
+      <mat-error>The app was not able to determine your location.</mat-error>
+    </div>
+    <div class="centered" *ngSwitchCase="REQUEST_STATE.NETWORK_ISSUE">
+      <mat-error>Could not connect to server. Are you online?</mat-error>
+    </div>
+    <div class="centered" *ngSwitchDefault>
+      <mat-error>An unknown error has occurred.</mat-error>
+    </div>
+    <div class="centered" *ngSwitchCase="REQUEST_STATE.LOADING">
+      <mat-spinner></mat-spinner>
+      <span class="loading__text">Loading data...</span></div>
+  </ng-container>
+</div>

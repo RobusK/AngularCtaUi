@@ -1,0 +1,7 @@
+{
+  "/graphql": {
+    "target": "https://cta.rkania.me/",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
