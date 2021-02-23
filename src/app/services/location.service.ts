@@ -7,13 +7,13 @@ import {REQUEST_STATE} from '../model/request_state.enum';
   providedIn: 'root'
 })
 export class LocationService {
-  private static errorCodes = {
+  private static errorCodes: { [key: number]: REQUEST_STATE } = {
     1: REQUEST_STATE.LOCATION_PERMISSION_DENIED,
     2: REQUEST_STATE.LOCATION_UNAVAILABLE,
     3: REQUEST_STATE.LOCATION_TIMEOUT
   };
 
-  public getPosition(): Observable<Coordinates> {
+  public getPosition(): Observable<GeolocationCoordinates> {
     return fromPromise(new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resp => {
           resolve(resp.coords);
@@ -29,7 +29,7 @@ export class LocationService {
 
   }
 
-  public calculateDistance(lat1, lon1, lat2, lon2, unit = 'M') {
+  public calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number, unit = 'M'): number {
     if ((lat1 === lat2) && (lon1 === lon2)) {
       return 0;
     } else {

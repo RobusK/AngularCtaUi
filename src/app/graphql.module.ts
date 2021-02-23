@@ -1,10 +1,16 @@
+import {APOLLO_OPTIONS} from 'apollo-angular';
+import {HttpLink} from 'apollo-angular/http';
+import {InMemoryCache} from '@apollo/client/core';
 import {NgModule} from '@angular/core';
-import {ApolloModule, APOLLO_OPTIONS} from 'apollo-angular';
-import {HttpLinkModule, HttpLink} from 'apollo-angular-link-http';
-import {InMemoryCache} from 'apollo-cache-inmemory';
+import {HttpClientModule} from '@angular/common/http';
+import {HttpLinkHandler} from 'apollo-angular/http/http-link';
+import {ApolloCache} from '@apollo/client/cache/core/cache';
+import {NormalizedCacheObject} from '@apollo/client/cache/inmemory/types';
+
 
 const uri = '/graphql';
-export function createApollo(httpLink: HttpLink) {
+
+export function createApollo(httpLink: HttpLink): { link: HttpLinkHandler, cache: ApolloCache<NormalizedCacheObject> } {
   return {
     link: httpLink.create({uri}),
     cache: new InMemoryCache(),
@@ -12,7 +18,7 @@ export function createApollo(httpLink: HttpLink) {
 }
 
 @NgModule({
-  exports: [ApolloModule, HttpLinkModule],
+  imports: [HttpClientModule],
   providers: [
     {
       provide: APOLLO_OPTIONS,
@@ -21,4 +27,5 @@ export function createApollo(httpLink: HttpLink) {
     },
   ],
 })
-export class GraphQLModule {}
+export class GraphQLModule {
+}

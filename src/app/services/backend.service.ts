@@ -1,15 +1,16 @@
+import {gql, Apollo} from 'apollo-angular';
 import {Injectable} from '@angular/core';
-import gql from 'graphql-tag';
-import {Apollo} from 'apollo-angular';
+
+
 import {LocationService} from './location.service';
 import {catchError, map, startWith, switchMap} from 'rxjs/operators';
 import {LocationResponse} from '../model/response';
-import {combineLatest, Observable, of, throwError} from 'rxjs';
+import {Observable, of, throwError} from 'rxjs';
 import {REQUEST_STATE} from '../model/request_state.enum';
 
 const getClosestStops = gql`
   query getThings($latitude: Float, $longitude: Float) {
-  closestStops(Lat: $latitude, Lon: $longitude, Limit:5){
+  closestStops(Lat: $latitude, Lon: $longitude, Limit:10){
     CommonName
     Lat
     Lon
@@ -36,18 +37,19 @@ export class BackendService {
   public getClosestStops(): Observable<LocationResponse> {
     return this.locationService.getPosition()
       .pipe(
-        switchMap((coords: Coordinates) => {
-          return combineLatest([
-            this._requestClosestStops(coords),
-            of(coords)
-          ]);
+        switchMap((coords: GeolocationCoordinates) => {
+          return this._requestClosestStops(coords);
         }),
-        map(([result, coords]: [any, Coordinates]) => [result.data.closestStops, coords]),
-        map(([results, coords]: [any, Coordinates]) => {
-          return results.map((result) => {
-            result.Distance = this.locationService.calculateDistance(result.Lat, result.Lon, coords.latitude, coords.longitude, 'M');
-            return result;
-          });
+        map((requestResult) => {
+          return requestResult.result.data.closestStops.map((result: any) => ({
+            ...result,
+            Distance: this.locationService.calculateDistance(
+              result.Lat,
+              result.Lon,
+              requestResult.coords.latitude,
+              requestResult.coords.longitude,
+              'M'),
+          }));
         }),
         map((result: any): LocationResponse => {
           return {data: result, status: REQUEST_STATE.SUCCESS};
@@ -62,13 +64,16 @@ export class BackendService {
       );
   }
 
-  private _requestClosestStops(coords: Coordinates) {
+  private _requestClosestStops(coords: GeolocationCoordinates): Observable<{ result: any, coords: GeolocationCoordinates }> {
     return this.apollo
       .query({
         query: getClosestStops,
         variables: {latitude: coords.latitude, longitude: coords.longitude},
         fetchPolicy: 'network-only'
       }).pipe(
+        map((result: any) => {
+          return {result, coords};
+        }),
         catchError((e) => {
           if (e.networkError) {
             return throwError(REQUEST_STATE.NETWORK_ISSUE);
@@ -77,5 +82,6 @@ export class BackendService {
           }
         })
       );
+
   }
 }
