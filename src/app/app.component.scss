@@ -51,6 +51,14 @@ mat-card {
   }
 }
 
+.entry__message {
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
 .entry {
   margin: 20px;
   flex-basis: 480px;
